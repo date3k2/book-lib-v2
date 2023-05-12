@@ -1,6 +1,7 @@
-from fastapi import FastAPI, Query, Body
+from fastapi import FastAPI, Query, Body, Path
 from pydantic import BaseModel
 from typing import Annotated
+from uuid import UUID, uuid1
 
 
 class Student(BaseModel):
@@ -30,14 +31,14 @@ async def read_item(item_id: int):
 
 @app.post("/items/")
 async def create_item(
-    name: str,
+    name: Annotated[str, Body()],
     description: Annotated[
-        str, Query(max_length=5, title="Create item for project", alias="dsc")
+        str, Body(max_length=5, title="Create item for project", alias="dsc")
     ] = None,
 ):
     if description:
-        return {"name": name, "description": description}
-    return {"name": name}
+        return {"name": name, "description": description, "id": uuid1()}
+    return {"name": name, "id": uuid1()}
 
 
 @app.post("/students/")
@@ -45,11 +46,16 @@ async def create_student(student: Student):
     return student
 
 
-@app.put("/items/{item_id}")
-async def update_item(item_id: int, item: Annotated[Item, Body(embed=False)]):
+@app.put("/items/{item_id}}")
+async def update_item(
+    item_id: Annotated[int, Path()], item: Annotated[Item, Body(embed=False)]
+):
     results = {"item_id": item_id, "item": item}
     return results
 
 
 # command for running the server
 # uvicorn main:app --reload
+
+# Make the server reload on code changes and log all the requests
+# uvicorn main:app --reload --log-level debug
