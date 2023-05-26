@@ -1,7 +1,8 @@
-from fastapi import FastAPI, Query, Body, Path
+from fastapi import Cookie, FastAPI, Query, Body, Path
 from pydantic import BaseModel
 from typing import Annotated
 from uuid import UUID, uuid1
+from datetime import datetime, time, timedelta
 
 
 class Student(BaseModel):
@@ -22,6 +23,11 @@ app = FastAPI()
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
+
+
+@app.get("/time/")
+async def time():
+    return {"time": datetime.now().date()}
 
 
 @app.get("/items/{item_id}")
@@ -46,12 +52,15 @@ async def create_student(student: Student):
     return student
 
 
-@app.put("/items/{item_id}}")
+@app.put("/items2/")
 async def update_item(
-    item_id: Annotated[int, Path()], item: Annotated[Item, Body(embed=False)]
+    item: Annotated[Item, Body()],
+    item_id: Annotated[
+        int,
+        Cookie(),
+    ] = None,
 ):
-    results = {"item_id": item_id, "item": item}
-    return results
+    return {"item_id": item_id, "item": item}
 
 
 # command for running the server
